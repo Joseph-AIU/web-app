@@ -1,0 +1,58 @@
+
+
+
+pipeline{
+    agent any
+    tools{
+     maven "maven3.8.5"
+   }
+   stages{
+     stage("Gitclone"){
+        steps{
+             sh"echo gitclone"
+            git credentialsId: 'Github-credentials', url: 'https://github.com/Joseph-AIU/maven-web-app.git'
+        }
+        }
+         stage("BuildArtifacts"){
+            steps{
+                sh "echo maven build"
+                sh "mvn clean package"
+            }
+          }
+            stage("Codetesting"){
+                steps{
+                    sh "echo start Code Quality Test"
+                    sh "mvn sonar:sonar"
+                }
+            }
+            stage("Backup"){
+                steps{
+                    sh"echo backup to Nexus"
+                    sh "mvn deploy"
+                }
+           }
+           stage("Deploy to UAT env"){
+               steps{
+                 sh "echo deploy to UAT env"
+          deploy adapters: [tomcat9(credentialsId: 'tomcat-new2', path: '', url: 'http://18.220.167.218:8080/manager/html')], contextPath: null, war: 'target/*.war'
+
+               }
+        
+           }
+           stage("Approval"){
+               steps{
+                   sh "echo Request Approval"
+                   timeout(time:2, unit:'DAYS'){
+                    input message:'Approval to deploy to prod'   
+                   }
+               }
+           }   
+               stage("Deploy to production"){
+                   steps{
+                     sh"echo deploy to prod"
+            deploy adapters: [tomcat9(credentialsId: 'tomcat-new2', path: '', url: 'http://18.220.167.218:8080/manager/html')], contextPath: null, war: 'target/*.war'
+                   }
+               }
+    }
+    }
+    
