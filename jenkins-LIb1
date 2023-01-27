@@ -10,7 +10,7 @@ pipeline{
      stage("Gitclone"){
         steps{
              sh"echo gitclone"
-            git credentialsId: 'Github-credentials', url: 'https://github.com/Joseph-AIU/maven-web-app.git'
+            git credentialsId: 'Github-credentials', url: 'https://github.com/Joseph-AIU/web-app.git'  
         }
         }
          stage("BuildArtifacts"){
